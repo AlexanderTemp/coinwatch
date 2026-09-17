@@ -1,0 +1,11 @@
+/* @surface: variable de tu tema; si no existe, usá un color fijo, ej: rgba(30, 30, 46, 0.9) */
+#custom-coinwatch {
+  background-color: alpha(@surface, 0.9);
+  border-radius: 4px;
+  margin: 0px 4px 0 4px;
+  padding: 0 10px;
+}
+
+#custom-coinwatch.error {
+  color: #FF8F8F;
+}

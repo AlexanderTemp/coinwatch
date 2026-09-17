@@ -1,0 +1,15 @@
+// Sumá "custom/coinwatch" a modules-left/center/right y copiá el bloque de abajo
+{
+  "modules-left": [
+    "custom/coinwatch"
+  ],
+
+  "custom/coinwatch": {
+    "exec": "~/.config/waybar/scripts/coinwatch.py",
+    "return-type": "json",
+    "interval": 60,
+    "tooltip": true,
+    "on-click": "~/.config/waybar/scripts/coinwatch_open.sh",
+    "signal": 8
+  }
+}
