@@ -1,14 +1,8 @@
-import GObject from 'gi://GObject';
-import St from 'gi://St';
-import Clutter from 'gi://Clutter';
-import GLib from 'gi://GLib';
-import Gio from 'gi://Gio';
-import Soup from 'gi://Soup';
-
-import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
-import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
-import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
-import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+const { GObject, St, Clutter, GLib, Gio, Soup } = imports.gi;
+const PanelMenu = imports.ui.panelMenu;
+const PopupMenu = imports.ui.popupMenu;
+const Main = imports.ui.main;
+const ByteArray = imports.byteArray;
 
 const INTERVAL_SECONDS = 60;
 const CONFIG_PATH = GLib.build_filenamev([GLib.get_home_dir(), '.config', 'coinwatch', 'watchlist.json']);
@@ -29,7 +23,7 @@ function loadWatchlist() {
     const [ok, contents] = GLib.file_get_contents(CONFIG_PATH);
     if (!ok)
         throw new Error('no se pudo leer watchlist.json');
-    return JSON.parse(new TextDecoder().decode(contents));
+    return JSON.parse(ByteArray.toString(contents));
 }
 
 const CoinwatchIndicator = GObject.registerClass(
@@ -72,7 +66,7 @@ class CoinwatchIndicator extends PanelMenu.Button {
                 const bytes = session.send_and_read_finish(result);
                 if (msg.get_status() !== Soup.Status.OK)
                     throw new Error(`HTTP ${msg.get_status()}`);
-                const text = new TextDecoder().decode(bytes.get_data());
+                const text = ByteArray.toString(bytes.get_data());
                 this._render(watchlist, JSON.parse(text));
             } catch (e) {
                 this._showError();
@@ -129,14 +123,17 @@ class CoinwatchIndicator extends PanelMenu.Button {
     }
 });
 
-export default class CoinwatchExtension extends Extension {
-    enable() {
-        this._indicator = new CoinwatchIndicator();
-        Main.panel.addToStatusArea(this.uuid, this._indicator);
-    }
+let indicator = null;
 
-    disable() {
-        this._indicator?.destroy();
-        this._indicator = null;
-    }
+function init() {
+}
+
+function enable() {
+    indicator = new CoinwatchIndicator();
+    Main.panel.addToStatusArea('coinwatch@local', indicator);
+}
+
+function disable() {
+    indicator?.destroy();
+    indicator = null;
 }

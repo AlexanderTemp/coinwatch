@@ -1,0 +1,7 @@
+[
+  {"id": "bitcoin", "label": "BTC", "decimals": 2, "bar": true},
+  {"id": "ethereum", "label": "ETH", "decimals": 2, "bar": false},
+  {"id": "ripple", "label": "XRP", "decimals": 4, "bar": true},
+  {"id": "binancecoin", "label": "BNB", "decimals": 4, "bar": false},
+  {"id": "sui", "label": "SUI", "decimals": 4, "bar": false}
+]

@@ -26,16 +26,25 @@ install_deps() {
 
     if command -v apt-get >/dev/null 2>&1; then
         sudo apt-get update
-        [ "$want_waybar" = 1 ] && sudo apt-get install -y python3 fuzzel xdg-utils
+        [ "$want_waybar" = 1 ] && sudo apt-get install -y python3 fuzzel xdg-utils jq
         [ "$MODE" = "panel" ] && sudo apt-get install -y python3
     elif command -v pacman >/dev/null 2>&1; then
-        [ "$want_waybar" = 1 ] && sudo pacman -S --needed python fuzzel xdg-utils
+        [ "$want_waybar" = 1 ] && sudo pacman -S --needed python fuzzel xdg-utils jq
         [ "$MODE" = "panel" ] && sudo pacman -S --needed python
     elif command -v dnf >/dev/null 2>&1; then
-        [ "$want_waybar" = 1 ] && sudo dnf install -y python3 fuzzel xdg-utils
+        [ "$want_waybar" = 1 ] && sudo dnf install -y python3 fuzzel xdg-utils jq
         [ "$MODE" = "panel" ] && sudo dnf install -y python3
     else
         echo "Distro no reconocida -- instalá manualmente las dependencias del README."
+    fi
+}
+
+install_config() {
+    local dest="$HOME/.config/coinwatch"
+    mkdir -p "$dest"
+    if [ ! -f "$dest/watchlist.json" ]; then
+        cp "$SCRIPT_DIR/watchlist.json" "$dest/watchlist.json"
+        echo "==> Config: $dest/watchlist.json"
     fi
 }
 
@@ -58,11 +67,19 @@ install_panel() {
         return
     fi
 
+    local src="$SCRIPT_DIR/panel"
+    local shell_major
+    shell_major="$(gnome-shell --version 2>/dev/null | grep -oE '[0-9]+' | head -1)"
+    if [ -n "$shell_major" ] && [ "$shell_major" -lt 45 ]; then
+        src="$SCRIPT_DIR/panel/legacy"
+        echo "    GNOME Shell $shell_major detectado -- usando extensión formato legacy."
+    fi
+
     local was_known=0
     gnome-extensions list 2>/dev/null | grep -qx "$ext_uuid" && was_known=1
 
     mkdir -p "$extdir"
-    cp "$SCRIPT_DIR/panel/metadata.json" "$SCRIPT_DIR/panel/extension.js" "$extdir/"
+    cp "$src/metadata.json" "$src/extension.js" "$extdir/"
 
     if [ "$was_known" = 1 ]; then
         gnome-extensions enable "$ext_uuid"
@@ -78,6 +95,7 @@ install_panel() {
 }
 
 install_deps
+install_config
 case "$MODE" in
     all)
         install_waybar

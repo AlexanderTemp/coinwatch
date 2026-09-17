@@ -1,17 +1,11 @@
 #!/usr/bin/env python3
 import json
+import os
 import urllib.error
 import urllib.request
 from datetime import datetime
 
-WATCHLIST = [
-    ("bitcoin", 2, "BTC"),
-    ("ethereum", 2, "ETH"),
-    ("ripple", 4, "XRP"),
-    ("binancecoin", 4, "BNB"),
-    ("sui", 4, "SUI"),
-]
-BAR_COINS = {"BTC", "XRP"}
+CONFIG_PATH = os.path.expanduser("~/.config/coinwatch/watchlist.json")
 
 UP, DOWN, FLAT = "#9ADE7B", "#FF8F8F", "#abb2bf"
 HEADER, DIM = "#61afef", "#5c6370"
@@ -25,8 +19,7 @@ def arrow_and_color(change):
     return "→", FLAT
 
 
-def fetch():
-    ids = ",".join(c[0] for c in WATCHLIST)
+def fetch(ids):
     url = (
         "https://api.coingecko.com/api/v3/simple/price"
         f"?ids={ids}&vs_currencies=usd&include_24hr_change=true&precision=full"
@@ -38,18 +31,21 @@ def fetch():
 
 def main():
     try:
-        data = fetch()
-    except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError):
+        with open(CONFIG_PATH) as f:
+            watchlist = json.load(f)
+        data = fetch(",".join(c["id"] for c in watchlist))
+    except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError, KeyError):
         print(json.dumps({"text": "⚠ sin datos", "tooltip": "CoinGecko no respondió", "class": "error"}))
         return
 
     bar_parts = []
     rows = []
 
-    for coin_id, decimals, label in WATCHLIST:
-        entry = data.get(coin_id)
+    for coin in watchlist:
+        entry = data.get(coin["id"])
         if not entry or "usd" not in entry:
             continue
+        label, decimals = coin["label"], coin["decimals"]
         price = entry["usd"]
         change = entry.get("usd_24h_change") or 0.0
         arrow, color = arrow_and_color(change)
@@ -60,7 +56,7 @@ def main():
             f"  {label:<4}<span foreground='{color}'>${price_fmt:<14} {arrow}{change_fmt}%</span>"
         )
 
-        if label in BAR_COINS:
+        if coin.get("bar"):
             sign = "+" if change > 0 else "-" if change < 0 else ""
             bar_parts.append(f"{label} <span foreground='{color}'>${price_fmt} {sign}{change_fmt}%</span>")
 

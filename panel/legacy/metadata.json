@@ -1,0 +1,6 @@
+{
+    "uuid": "coinwatch@local",
+    "name": "coinwatch",
+    "description": "Precios cripto (CoinGecko) en la barra superior de GNOME.",
+    "shell-version": ["40", "41", "42", "43", "44"]
+}
