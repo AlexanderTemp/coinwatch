@@ -11,8 +11,18 @@ BTC $109,432.10 ↑1.24%   XRP $2.4310 ↓0.38%
 
 ## Instalación
 
+Sin clonar el repo:
+
 ```bash
-git clone <esta-repo> coinwatch
+curl -fsSL https://raw.githubusercontent.com/AlexanderTemp/coinwatch/main/install.sh | bash -s -- all
+curl -fsSL https://raw.githubusercontent.com/AlexanderTemp/coinwatch/main/install.sh | bash -s -- waybar
+curl -fsSL https://raw.githubusercontent.com/AlexanderTemp/coinwatch/main/install.sh | bash -s -- panel
+```
+
+O clonando el repo:
+
+```bash
+git clone https://github.com/AlexanderTemp/coinwatch
 cd coinwatch
 ./install.sh          # waybar + panel
 ./install.sh waybar   # módulo custom/coinwatch (Sway, Hyprland, etc.)
@@ -83,6 +93,17 @@ Después de editar, para ver el cambio:
 - **waybar**: reiniciá waybar (o tu compositor la reinicia sola según config).
 - **panel (GNOME)**: hay que cerrar sesión y volver a entrar — GNOME
   cachea el JS de la extensión por sesión.
+
+## Desinstalación
+
+```bash
+# waybar (+ sacar el bloque "custom/coinwatch" de config.jsonc/style.css)
+rm ~/.config/waybar/scripts/coinwatch.py ~/.config/waybar/scripts/coinwatch_open.sh
+
+# panel (GNOME)
+gnome-extensions disable coinwatch@local
+rm -rf ~/.local/share/gnome-shell/extensions/coinwatch@local
+```
 
 ## Licencia
 

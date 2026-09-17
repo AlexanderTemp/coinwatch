@@ -1,8 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+REPO_TARBALL="https://github.com/AlexanderTemp/coinwatch/archive/refs/heads/main.tar.gz"
+
 MODE="${1:-all}"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+fi
+
+if [ -z "${SCRIPT_DIR:-}" ] || [ ! -f "$SCRIPT_DIR/scripts/coinwatch.py" ]; then
+    SCRIPT_DIR="$(mktemp -d)"
+    trap 'rm -rf "$SCRIPT_DIR"' EXIT
+    echo "==> Descargando coinwatch..."
+    curl -fsSL "$REPO_TARBALL" | tar -xz -C "$SCRIPT_DIR" --strip-components=1
+fi
 
 install_deps() {
     echo "==> Instalando dependencias ($MODE)"
