@@ -10,6 +10,8 @@
     "interval": 60,
     "tooltip": true,
     "on-click": "~/.config/waybar/scripts/coinwatch_open.sh",
+    "on-click-right": "~/.config/coinwatch/coinwatch_add.sh",
+    "on-click-middle": "~/.config/coinwatch/coinwatch_bar.sh",
     "signal": 8
   }
 }

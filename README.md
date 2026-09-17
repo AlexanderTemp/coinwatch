@@ -46,9 +46,15 @@ y el picker en cada corrida -- agregar/sacar moneda es editar esto y nada más
 Sin tocar el JSON a mano (fuzzel/wofi/rofi):
 
 - `~/.config/coinwatch/coinwatch_add.sh` -- busca en todo CoinGecko y agrega
-  la que elijas (`decimals: 4`, `bar: false` por defecto).
+  la que elijas (`decimals: 4`, `bar: false` por defecto). Cachea la lista de
+  monedas en `coins_cache.json` y la renueva sola 1 vez por semana.
 - `~/.config/coinwatch/coinwatch_bar.sh` -- lista tu watchlist con `[x]/[ ]`,
   buscás y elegís una para tildar/destildar `bar`; repite hasta que canceles.
+
+Acceso directo: en el **panel** están como ítems del menú ("+ Agregar
+moneda...", "Elegir monedas de la barra..."). En **waybar**, click derecho
+agrega y click del medio elige (`on-click-right`/`on-click-middle` en
+`config.jsonc.example`).
 
 ## Desinstalación
 

@@ -2,10 +2,15 @@
 set -euo pipefail
 
 CONFIG="$HOME/.config/coinwatch/watchlist.json"
+CACHE="$HOME/.config/coinwatch/coins_cache.json"
 [ -f "$CONFIG" ] || { echo "coinwatch_add: no existe $CONFIG (corré install.sh primero)" >&2; exit 1; }
 
-list=$(curl -fsSL "https://api.coingecko.com/api/v3/coins/list" |
-    jq -r '.[] | "\(.symbol|ascii_upcase)  \(.name)  [\(.id)]"' | sort)
+if [ ! -f "$CACHE" ] || [ -n "$(find "$CACHE" -mtime +7 2>/dev/null)" ]; then
+    echo "coinwatch_add: actualizando lista de CoinGecko (1 vez por semana)..." >&2
+    curl -fsSL "https://api.coingecko.com/api/v3/coins/list" -o "$CACHE"
+fi
+
+list=$(jq -r '.[] | "\(.symbol|ascii_upcase)  \(.name)  [\(.id)]"' "$CACHE" | sort)
 
 pick() {
     if command -v fuzzel >/dev/null 2>&1; then

@@ -79,6 +79,26 @@ class CoinwatchIndicator extends PanelMenu.Button {
         this.menu.removeAll();
         const item = new PopupMenu.PopupMenuItem('CoinGecko no respondió', {reactive: false});
         this.menu.addMenuItem(item);
+        this._addManageItems();
+    }
+
+    _spawn(script) {
+        try {
+            GLib.spawn_command_line_async(`${GLib.get_home_dir()}/.config/coinwatch/${script}`);
+        } catch (e) {
+        }
+    }
+
+    _addManageItems() {
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+        const addItem = new PopupMenu.PopupMenuItem('+ Agregar moneda...');
+        addItem.connect('activate', () => this._spawn('coinwatch_add.sh'));
+        this.menu.addMenuItem(addItem);
+
+        const barItem = new PopupMenu.PopupMenuItem('Elegir monedas de la barra...');
+        barItem.connect('activate', () => this._spawn('coinwatch_bar.sh'));
+        this.menu.addMenuItem(barItem);
     }
 
     _render(watchlist, data) {
@@ -111,6 +131,7 @@ class CoinwatchIndicator extends PanelMenu.Button {
             }
         }
 
+        this._addManageItems();
         this._label.get_clutter_text().set_markup(barParts.join('   '));
     }
 
