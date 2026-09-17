@@ -46,6 +46,8 @@ install_config() {
         cp "$SCRIPT_DIR/watchlist.json" "$dest/watchlist.json"
         echo "==> Config: $dest/watchlist.json"
     fi
+    cp "$SCRIPT_DIR/scripts/coinwatch_add.sh" "$SCRIPT_DIR/scripts/coinwatch_bar.sh" "$dest/"
+    chmod +x "$dest/coinwatch_add.sh" "$dest/coinwatch_bar.sh"
 }
 
 install_waybar() {

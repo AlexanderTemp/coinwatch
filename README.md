@@ -40,9 +40,15 @@ y el picker en cada corrida -- agregar/sacar moneda es editar esto y nada más
 ]
 ```
 
-`id` = id de CoinGecko (`curl -s "https://api.coingecko.com/api/v3/search?query=NOMBRE" | jq -r '.coins[0].id'`).
 `decimals` = decimales a mostrar. `bar` = si aparece en el texto de la barra
 (si no, solo en tooltip/menú).
+
+Sin tocar el JSON a mano (fuzzel/wofi/rofi):
+
+- `~/.config/coinwatch/coinwatch_add.sh` -- busca en todo CoinGecko y agrega
+  la que elijas (`decimals: 4`, `bar: false` por defecto).
+- `~/.config/coinwatch/coinwatch_bar.sh` -- lista tu watchlist con `[x]/[ ]`,
+  buscás y elegís una para tildar/destildar `bar`; repite hasta que canceles.
 
 ## Desinstalación
 
