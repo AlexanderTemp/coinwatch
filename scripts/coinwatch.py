@@ -19,7 +19,7 @@ def arrow_and_color(change):
     return "→", FLAT
 
 
-def fetch(ids):
+def fetch_spot(ids):
     url = (
         "https://api.coingecko.com/api/v3/simple/price"
         f"?ids={ids}&vs_currencies=usd&include_24hr_change=true&precision=full"
@@ -29,11 +29,22 @@ def fetch(ids):
         return json.load(resp)
 
 
+def fetch_perp():
+    url = "https://api.coingecko.com/api/v3/derivatives"
+    req = urllib.request.Request(url, headers={"User-Agent": "coinwatch-waybar"})
+    with urllib.request.urlopen(req, timeout=5) as resp:
+        contracts = json.load(resp)
+    return {c["index_id"].upper(): c for c in contracts if c.get("market") == "Binance (Futures)"}
+
+
 def main():
     try:
         with open(CONFIG_PATH) as f:
             watchlist = json.load(f)
-        data = fetch(",".join(c["id"] for c in watchlist))
+
+        spot_ids = ",".join(c["id"] for c in watchlist if not c.get("perp"))
+        spot_data = fetch_spot(spot_ids) if spot_ids else {}
+        perp_data = fetch_perp() if any(c.get("perp") for c in watchlist) else {}
     except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError, KeyError):
         print(json.dumps({"text": "⚠ sin datos", "tooltip": "CoinGecko no respondió", "class": "error"}))
         return
@@ -42,12 +53,21 @@ def main():
     rows = []
 
     for coin in watchlist:
-        entry = data.get(coin["id"])
-        if not entry or "usd" not in entry:
-            continue
         label, decimals = coin["label"], coin["decimals"]
-        price = entry["usd"]
-        change = entry.get("usd_24h_change") or 0.0
+
+        if coin.get("perp"):
+            contract = perp_data.get(label.upper())
+            if not contract:
+                continue
+            price = float(contract["price"])
+            change = contract.get("price_percentage_change_24h") or 0.0
+        else:
+            entry = spot_data.get(coin["id"])
+            if not entry or "usd" not in entry:
+                continue
+            price = entry["usd"]
+            change = entry.get("usd_24h_change") or 0.0
+
         arrow, color = arrow_and_color(change)
         price_fmt = f"{price:,.{decimals}f}"
         change_fmt = f"{abs(change):.2f}"

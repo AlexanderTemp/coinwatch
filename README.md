@@ -22,7 +22,10 @@ git clone https://github.com/AlexanderTemp/coinwatch && cd coinwatch && ./instal
 menú nativo en GNOME, sin dependencias de terceros. Click abre la moneda en
 CoinGecko.
 
-`panel` necesita reloguear tras instalar/actualizar (GNOME cachea el JS).
+`panel` necesita un proceso de GNOME Shell nuevo para tomar cambios en
+`extension.js` (disable/enable no alcanza). Normalmente cerrar sesión
+alcanza; si no, reiniciá la máquina.
+
 Detecta tu versión de GNOME e instala `panel/extension.js` (45+) o
 `panel/legacy/extension.js` (40-44) -- dos copias, cambios van en ambas.
 
@@ -39,7 +42,8 @@ se relee solo (waybar en el próximo `interval`):
 ```
 
 `decimals` = decimales a mostrar. `bar` = si aparece en el texto de la barra
-(si no, solo en tooltip/menú).
+(si no, solo en tooltip/menú). `perp` (`true`/`false`, opcional) = precio del
+perpetuo de Binance Futures en vez del spot, matcheado por `label`.
 
 Sin tocar el JSON a mano:
 
@@ -54,7 +58,7 @@ Sin tocar el JSON a mano:
 ```bash
 rm ~/.config/waybar/scripts/coinwatch.py ~/.config/waybar/scripts/coinwatch_open.sh   # waybar (+ sacar el bloque de config.jsonc/style.css)
 gnome-extensions disable coinwatch@local && rm -rf ~/.local/share/gnome-shell/extensions/coinwatch@local   # panel
-rm -rf ~/.config/coinwatch   # config compartida, si no usás ninguno de los dos
+rm -rf ~/.config/coinwatch   # config compartida, si no usas ninguno de los dos
 ```
 
 ## Licencia

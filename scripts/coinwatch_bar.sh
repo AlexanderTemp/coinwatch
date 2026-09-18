@@ -2,7 +2,7 @@
 set -euo pipefail
 
 CONFIG="$HOME/.config/coinwatch/watchlist.json"
-[ -f "$CONFIG" ] || { echo "coinwatch_bar: no existe $CONFIG (corré install.sh primero)" >&2; exit 1; }
+[ -f "$CONFIG" ] || { echo "coinwatch_bar: no existe $CONFIG (ejecuta install.sh primero)" >&2; exit 1; }
 
 pick() {
     if command -v fuzzel >/dev/null 2>&1; then

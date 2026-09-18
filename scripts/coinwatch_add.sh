@@ -3,7 +3,7 @@ set -euo pipefail
 
 CONFIG="$HOME/.config/coinwatch/watchlist.json"
 CACHE="$HOME/.config/coinwatch/coins_cache.json"
-[ -f "$CONFIG" ] || { echo "coinwatch_add: no existe $CONFIG (corré install.sh primero)" >&2; exit 1; }
+[ -f "$CONFIG" ] || { echo "coinwatch_add: no existe $CONFIG (ejecuta install.sh primero)" >&2; exit 1; }
 
 if [ ! -f "$CACHE" ] || [ -n "$(find "$CACHE" -mtime +7 2>/dev/null)" ]; then
     echo "coinwatch_add: actualizando lista de CoinGecko (1 vez por semana)..." >&2
@@ -40,4 +40,4 @@ tmp=$(mktemp)
 jq --arg id "$id" --arg label "$label" '. += [{"id": $id, "label": $label, "decimals": 4, "bar": false}]' "$CONFIG" > "$tmp"
 mv "$tmp" "$CONFIG"
 
-echo "Agregada: $label ($id) -- decimals=4, bar=false. Ajustá $CONFIG si hace falta."
+echo "Agregada: $label ($id) -- decimals=4, bar=false. Ajusta $CONFIG si hace falta."

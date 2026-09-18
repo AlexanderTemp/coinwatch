@@ -109,25 +109,41 @@ class CoinwatchIndicator extends PanelMenu.Button {
 
         if (watchlist.length === 0) {
             this._priceSection.removeAll();
-            this._priceSection.addMenuItem(new PopupMenu.PopupMenuItem('Watchlist vacío -- agregá una moneda', {reactive: false}));
+            this._priceSection.addMenuItem(new PopupMenu.PopupMenuItem('Watchlist vacío -- agrega una moneda', {reactive: false}));
             this._label.get_clutter_text().set_text('coinwatch');
             return;
         }
 
-        const ids = watchlist.map(c => c.id).join(',');
-        const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&precision=full`;
-        const msg = Soup.Message.new('GET', url);
+        const spotCoins = watchlist.filter(c => !c.perp);
+        const needsPerp = watchlist.some(c => c.perp);
+        const spotUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${spotCoins.map(c => c.id).join(',')}&vs_currencies=usd&include_24hr_change=true&precision=full`;
 
-        this._session.send_and_read_async(msg, GLib.PRIORITY_DEFAULT, null, (session, result) => {
-            try {
-                const bytes = session.send_and_read_finish(result);
-                if (msg.get_status() !== Soup.Status.OK)
-                    throw new Error(`HTTP ${msg.get_status()}`);
-                const text = new TextDecoder().decode(bytes.get_data());
-                this._render(watchlist, JSON.parse(text));
-            } catch (e) {
-                this._showError();
+        Promise.all([
+            spotCoins.length > 0 ? this._fetchJson(spotUrl) : Promise.resolve({}),
+            needsPerp ? this._fetchJson('https://api.coingecko.com/api/v3/derivatives') : Promise.resolve([]),
+        ]).then(([spotData, derivatives]) => {
+            const perpData = {};
+            for (const contract of derivatives) {
+                if (contract.market === 'Binance (Futures)')
+                    perpData[contract.index_id.toUpperCase()] = contract;
             }
+            this._render(watchlist, spotData, perpData);
+        }).catch(() => this._showError());
+    }
+
+    _fetchJson(url) {
+        const msg = Soup.Message.new('GET', url);
+        return new Promise((resolve, reject) => {
+            this._session.send_and_read_async(msg, GLib.PRIORITY_DEFAULT, null, (session, result) => {
+                try {
+                    const bytes = session.send_and_read_finish(result);
+                    if (msg.get_status() !== Soup.Status.OK)
+                        throw new Error(`HTTP ${msg.get_status()}`);
+                    resolve(JSON.parse(new TextDecoder().decode(bytes.get_data())));
+                } catch (e) {
+                    reject(e);
+                }
+            });
         });
     }
 
@@ -137,17 +153,27 @@ class CoinwatchIndicator extends PanelMenu.Button {
         this._priceSection.addMenuItem(new PopupMenu.PopupMenuItem('CoinGecko no respondió', {reactive: false}));
     }
 
-    _render(watchlist, data) {
+    _render(watchlist, spotData, perpData) {
         this._priceSection.removeAll();
         const barParts = [];
 
         for (const coin of watchlist) {
-            const entry = data[coin.id];
-            if (!entry || entry.usd === undefined)
-                continue;
+            let price, change;
 
-            const price = entry.usd;
-            const change = entry.usd_24h_change || 0;
+            if (coin.perp) {
+                const contract = perpData[coin.label.toUpperCase()];
+                if (!contract)
+                    continue;
+                price = parseFloat(contract.price);
+                change = contract.price_percentage_change_24h || 0;
+            } else {
+                const entry = spotData[coin.id];
+                if (!entry || entry.usd === undefined)
+                    continue;
+                price = entry.usd;
+                change = entry.usd_24h_change || 0;
+            }
+
             const [arrow, color] = arrowAndColor(change);
             const priceFmt = price.toLocaleString('en-US', {
                 minimumFractionDigits: coin.decimals,
@@ -238,14 +264,28 @@ class CoinwatchIndicator extends PanelMenu.Button {
                 return;
             }
             if (!query || query.length < 2) {
-                resultsSection.addMenuItem(new PopupMenu.PopupMenuItem('Escribí al menos 2 letras...', {reactive: false}));
+                resultsSection.addMenuItem(new PopupMenu.PopupMenuItem('Escribe al menos 2 letras...', {reactive: false}));
                 return;
             }
 
             const q = query.toLowerCase();
+            const rank = c => {
+                const symbol = c.symbol.toLowerCase();
+                const name = c.name.toLowerCase();
+                if (symbol === q) return 0;
+                if (symbol.startsWith(q)) return 1;
+                if (name.startsWith(q)) return 2;
+                if (symbol.includes(q)) return 3;
+                if (name.includes(q)) return 4;
+                if (c.id.toLowerCase().includes(q)) return 5;
+                return -1;
+            };
             const matches = this._coins
-                .filter(c => c.symbol.toLowerCase().includes(q) || c.name.toLowerCase().includes(q) || c.id.toLowerCase().includes(q))
-                .slice(0, 12);
+                .map(c => [c, rank(c)])
+                .filter(([, r]) => r >= 0)
+                .sort((a, b) => a[1] - b[1])
+                .slice(0, 12)
+                .map(([c]) => c);
 
             if (matches.length === 0) {
                 resultsSection.addMenuItem(new PopupMenu.PopupMenuItem('Sin resultados', {reactive: false}));
@@ -292,6 +332,7 @@ class CoinwatchIndicator extends PanelMenu.Button {
 
             for (const coin of watchlist) {
                 const switchItem = new PopupMenu.PopupSwitchMenuItem(coin.label, !!coin.bar);
+                switchItem.activate = () => switchItem.toggle();
                 switchItem.connect('toggled', (_item, state) => {
                     const wl = loadWatchlist();
                     const target = wl.find(c => c.id === coin.id);

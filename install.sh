@@ -37,7 +37,7 @@ install_deps() {
     elif command -v dnf >/dev/null 2>&1; then
         sudo dnf install -y python3 fuzzel xdg-utils jq
     else
-        echo "Distro no reconocida -- instalá manualmente las dependencias del README."
+        echo "Distro no reconocida -- instala manualmente las dependencias del README."
     fi
 }
 
@@ -91,13 +91,9 @@ install_panel() {
 
     if [ "$was_known" = 1 ]; then
         gnome-extensions enable "$ext_uuid"
-        echo "    Instalada en $extdir."
-        echo "    GNOME cachea el código JS por sesión: si ya la habías usado antes,"
-        echo "    cerrá sesión y volvé a entrar para que tome los cambios (enable/disable no alcanza)."
+        echo "    Instalada en $extdir. Cierra sesión y vuelve a entrar para tomar los cambios."
     else
-        echo "    Instalada en $extdir."
-        echo "    GNOME solo detecta extensiones nuevas al reiniciar la sesión:"
-        echo "    cerrá sesión y volvé a entrar, después corré:"
+        echo "    Instalada en $extdir. Cierra sesión, vuelve a entrar y ejecuta:"
         echo "    gnome-extensions enable $ext_uuid"
     fi
 }
