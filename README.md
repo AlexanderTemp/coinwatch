@@ -19,19 +19,17 @@ git clone https://github.com/AlexanderTemp/coinwatch && cd coinwatch && ./instal
 ```
 
 `waybar` = módulo `custom/coinwatch` (Sway, Hyprland, etc). `panel` = texto +
-menú nativo en la barra de GNOME, sin dependencias de terceros. Click abre la
-moneda en CoinGecko.
+menú nativo en GNOME, sin dependencias de terceros. Click abre la moneda en
+CoinGecko.
 
-`panel` necesita reloguear tras instalar/actualizar (GNOME cachea el JS por
-sesión, `install.sh` avisa cuándo). También detecta tu versión de GNOME e
-instala `panel/extension.js` (45+) o `panel/legacy/extension.js` (40-44,
-incluye Debian 12) -- son dos copias, todo cambio al panel va en ambas.
+`panel` necesita reloguear tras instalar/actualizar (GNOME cachea el JS).
+Detecta tu versión de GNOME e instala `panel/extension.js` (45+) o
+`panel/legacy/extension.js` (40-44) -- dos copias, cambios van en ambas.
 
 ## Watchlist
 
-Un solo archivo, `~/.config/coinwatch/watchlist.json`, lo leen waybar, panel
-y el picker en cada corrida -- agregar/sacar moneda es editar esto y nada más
-(se relee solo, sin reloguear; waybar toma el cambio en el próximo `interval`):
+Un solo archivo, `~/.config/coinwatch/watchlist.json` -- editarlo alcanza,
+se relee solo (waybar en el próximo `interval`):
 
 ```json
 [
@@ -43,18 +41,13 @@ y el picker en cada corrida -- agregar/sacar moneda es editar esto y nada más
 `decimals` = decimales a mostrar. `bar` = si aparece en el texto de la barra
 (si no, solo en tooltip/menú).
 
-Sin tocar el JSON a mano (fuzzel/wofi/rofi):
+Sin tocar el JSON a mano:
 
-- `~/.config/coinwatch/coinwatch_add.sh` -- busca en todo CoinGecko y agrega
-  la que elijas (`decimals: 4`, `bar: false` por defecto). Cachea la lista de
-  monedas en `coins_cache.json` y la renueva sola 1 vez por semana.
-- `~/.config/coinwatch/coinwatch_bar.sh` -- lista tu watchlist con `[x]/[ ]`,
-  buscás y elegís una para tildar/destildar `bar`; repite hasta que canceles.
-
-Acceso directo: en el **panel** están como ítems del menú ("+ Agregar
-moneda...", "Elegir monedas de la barra..."). En **waybar**, click derecho
-agrega y click del medio elige (`on-click-right`/`on-click-middle` en
-`config.jsonc.example`).
+- **Panel** (GNOME): "+ Agregar moneda..." y "Elegir monedas de la barra..."
+  son submenús nativos del menú, sin fuzzel/wofi/rofi/jq.
+- **Waybar**: click derecho agrega (`coinwatch_add.sh`), click del medio
+  elige la barra (`coinwatch_bar.sh`) -- usan fuzzel/wofi/rofi + jq, solo
+  instalados con `install.sh waybar`/`all`.
 
 ## Desinstalación
 

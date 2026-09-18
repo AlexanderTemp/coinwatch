@@ -17,23 +17,25 @@ if [ -z "${SCRIPT_DIR:-}" ] || [ ! -f "$SCRIPT_DIR/scripts/coinwatch.py" ]; then
 fi
 
 install_deps() {
-    echo "==> Instalando dependencias ($MODE)"
     local want_waybar=0
     case "$MODE" in
         all|waybar) want_waybar=1 ;;
         panel) : ;;
     esac
 
+    if [ "$want_waybar" != 1 ]; then
+        echo "==> Panel: sin dependencias de terceros (usa GJS/libsoup, ya incluidos en GNOME Shell)"
+        return
+    fi
+
+    echo "==> Instalando dependencias (waybar)"
     if command -v apt-get >/dev/null 2>&1; then
         sudo apt-get update
-        [ "$want_waybar" = 1 ] && sudo apt-get install -y python3 fuzzel xdg-utils jq
-        [ "$MODE" = "panel" ] && sudo apt-get install -y python3
+        sudo apt-get install -y python3 fuzzel xdg-utils jq
     elif command -v pacman >/dev/null 2>&1; then
-        [ "$want_waybar" = 1 ] && sudo pacman -S --needed python fuzzel xdg-utils jq
-        [ "$MODE" = "panel" ] && sudo pacman -S --needed python
+        sudo pacman -S --needed python fuzzel xdg-utils jq
     elif command -v dnf >/dev/null 2>&1; then
-        [ "$want_waybar" = 1 ] && sudo dnf install -y python3 fuzzel xdg-utils jq
-        [ "$MODE" = "panel" ] && sudo dnf install -y python3
+        sudo dnf install -y python3 fuzzel xdg-utils jq
     else
         echo "Distro no reconocida -- instalá manualmente las dependencias del README."
     fi
@@ -46,8 +48,12 @@ install_config() {
         cp "$SCRIPT_DIR/watchlist.json" "$dest/watchlist.json"
         echo "==> Config: $dest/watchlist.json"
     fi
-    cp "$SCRIPT_DIR/scripts/coinwatch_add.sh" "$SCRIPT_DIR/scripts/coinwatch_bar.sh" "$dest/"
-    chmod +x "$dest/coinwatch_add.sh" "$dest/coinwatch_bar.sh"
+    case "$MODE" in
+        all|waybar)
+            cp "$SCRIPT_DIR/scripts/coinwatch_add.sh" "$SCRIPT_DIR/scripts/coinwatch_bar.sh" "$dest/"
+            chmod +x "$dest/coinwatch_add.sh" "$dest/coinwatch_bar.sh"
+            ;;
+    esac
 }
 
 install_waybar() {
